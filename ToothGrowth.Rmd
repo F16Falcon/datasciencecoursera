@@ -7,28 +7,33 @@ output: html_document
 
 ###Synopsis
 
-This document describes a statisical summary performed on the ToothGrowth dataset. The study performed by E.W. Crampton analyzes the impact of Vitamin C on the growth of the incisors of guinea pigs. The source of the data found in the ToothGrowth dataset is C.I Bliss (1952) *The Statistics of Bioassay.* Academic Press. A copy of the original study is avaiable in *The Journal OF Nutrition* at http://jn.nutrition.org/content/33/5/491.full.pdf. 
+This document describes a statisical summary performed on the ToothGrowth dataset. The dataset contains information from a study performed by E.W. Crampton, which analyzes the impact of Vitamin C on the growth of the incisors of guinea pigs. The source of the ToothGrowth dataset is C.I Bliss (1952) *The Statistics of Bioassay.* Academic Press. A copy of the original study is available in *The Journal Of Nutrition* at http://jn.nutrition.org/content/33/5/491.full.pdf. 
 
 The study examines the response in the length of odontoblasts (cells responsible for tooth growth) in 60 guinea pigs, each receiving one of three dose levels of Vitamin C (0.5, 1.0, and 2.0 mg) with one of two delivery methods (orange juice or an aqueous solution of ascorbic acid). The summary that follows examines two hypotheses:
 
 (1) The dataset supports a hypothesis that the administration of Vitamin C (ascorbic acid) promotes tooth growth in guinea pigs. More specifically, the dataset supports a hypothesis that
 there is a positive correlation between the dosage administered and tooth growth, measured by a greater mean tooth length.
-(2) The dataset supports a hpothesis that the delivery of Vitamin C delivered by orange juice promotes greater tooth growth than aqueous solution, measured by a greater mean tooth length.
+(2) The dataset supports a hypothesis that the delivery of Vitamin C by orange juice promotes greater tooth growth than delivery by aqueous solution, measured by a greater mean tooth length.
 
 ###Data
 
 The information in the ToothGrowth dataset is a data frame with 60 observations (60 guinea pigs), and three variables: (1) len, which is the odontoblast length in microns; (2) supp, which is the supplement type (orange juice or aqueous solution of ascorbic acid); and (3) dose, in milligrams (0.5, 1.0, and 2.0).
 
+**Assumptions**
+
+The following assumptions have been made about the data:
+
+* The results of the 60 guinea pigs are independent.
+* The variances in the tooth growth per dosage level is non-constant and unequal.
+
 ###Analysis
 
-The analysis begins by taking an exploratory look at the data. The table that follows shows the average tooth length (microns) by supplement and dose (milligrams).
+The analysis begins by taking an exploratory look at the dataset. The table that follows shows that the average tooth length (microns) by supplement and dose (milligrams). In  the table, OJ represents orange juice and VC represents aqueous solution of ascorbic acid.
 
 ```{r echo=FALSE, message=TRUE, warning=FALSE}
 suppressMessages(library(datasets,warn.conflicts=FALSE, quietly=TRUE))
 suppressMessages(library(ggplot2,warn.conflicts =FALSE, quietly =TRUE))
 suppressMessages(library(dplyr,warn.conflicts =FALSE,quietly =TRUE))
-suppressMessages(library(grid,warn.conflicts =FALSE,quietly =TRUE))
-suppressMessages(library(gridExtra,warn.conflicts =FALSE,quietly =TRUE))
 data("ToothGrowth")
 
 check<-select(ToothGrowth,len,supp,dose)%>%group_by(supp,dose)%>%summarize(length=mean(len))
@@ -36,19 +41,17 @@ colnames(check)<-c("Supplement", "Dose","Mean Length")
 check
 ```
 
-A cursory look at the distribution of tooth growth by supplement shows that the median tooth growth is higher for the guinea pigs that received Vitamin C from orange juice, versus those who receive Vitamin C via an aqueous solution. The boxplot also shows that the dispersion of tooth growth is greater for the guinea pigs who received the aqueous solution versus orange juice. We will examine whether this effect is statistically significant.
+A cursory look at a boxplot of the tooth growth by supplement shows that the median tooth growth is higher for the guinea pigs that received Vitamin C from orange juice, versus those who receive Vitamin C via an aqueous solution (the black horizontal line in each box indicates the median tooth length). The boxplot also shows that the dispersion of tooth growth is greater for the guinea pigs who received the aqueous solution versus orange juice. I will examine whether this effect is statistically significant.
 
 ```{r echo=FALSE, message=TRUE, warning=FALSE, fig.width=10}
 g<-ggplot(ToothGrowth, aes(x= supp, y = len, fill=supp))
 g<-g+geom_boxplot()
-g<-g+ggtitle("Cursory View of the Impact of Orange Juice & Vitamin C
-             on the Growth of Teeth for Guinea Pigs")
+g<-g+ggtitle("Impact of Vitamin C on Tooth Growth for Guinea Pigs")
 g
 
 ```
 
-
-The results of the boxplot are supported by the following line charts that shows the relationship between length, dose, and supplement. It would appears from these charts that at lower dosages, Vitamin C delivered via orange juice promotes tooth growth more effectively than Vitamin C delivered via aqueous solution .
+The results of the boxplot are supported by the following line charts that shows the relationship between length, dose, and supplement. It would appears from these charts that at lower dosages, Vitamin C delivered via orange juice promotes greater tooth growth than Vitamin C delivered via aqueous solution .
 
 ```{r echo=FALSE, message=TRUE, warning=FALSE, fig.width=10}
 g<-ggplot(ToothGrowth,aes(x=dose,y=len, color=supp, group=dose))
@@ -61,8 +64,7 @@ g
 
 ```
 
-
-To test the first hypothesis, that the dataset supports a hypothesis that the administration of Vitamin C promotes tooth growth, I computed six test statistics measuring the difference in the mean tooth length by dose and supplement. These statistics compare the difference in mean tooth length for pairings of doses, by supplement. The test statistics labeled Tstat(x), where x=1,...,6, represent the following comparison:
+To test the first hypothesis, that the dataset supports a proposition that the administration of Vitamin C promotes tooth growth, I computed six test statistics measuring the difference in the mean tooth length by dose and supplement. These statistics compare the difference in mean tooth length for pairings of doses, by supplement. The test statistics are labeled Tstat(x), where x=1,...,6, represent the following comparison:
 
 * Tstat1: computes the mean length from aqueous solution at 2.0 mg - mean length from aqueous solution at 0.5 mg
 * Tstat2: computes the mean length from aqueous solution at 1.0 mg - mean length from aqueous solution at 0.5 mg
@@ -109,13 +111,13 @@ stat1<-round(rbind(int1,int2,int3,int4,int5,int6),4)
 stat2<-rbind(pv1,pv2,pv3,pv4,pv5,pv6)
 stat<-cbind(stat1,stat2)
 rownames(stat)<-c("Tstat1","Tstat2","Tstat3","Tstat4","Tstat5","Tstat6")
-colnames(stat)<-c("Lower Bound","Upper Bound","P-value")
+colnames(stat)<-c("Lower Bound","Upper Bound","p_value")
 stat
 ```
 
-For each test statistic the Null hypothesis (i.e., that the mean difference in tooth length is zero) is rejected, since zero is not present in any of the confidence intervals and the p_values are smaller than the 5% test level. Based on these statistics, I conclude that Vitamin C administered by either method, orange juice or aqueous solution promotes tooth growth, given the data in the study. In addition, the amount of growth is positively correlated to the amount of Vitamin C delivered.
+For each test statistic the Null hypothesis (i.e., that the mean difference in tooth length is zero) is rejected, since zero is not present in any of the confidence intervals and the p_values are smaller than the 5% error rate. Based on these statistics, I conclude that Vitamin C administered by either method, orange juice or aqueous solution promotes tooth growth, given the data in the study. In addition, the amount of tooth growth is positively correlated with the amount of Vitamin C delivered.
 
-To address the second hypothesis, *that the dataset supports a hypothesis that the delivery method, orange juice or an aqueous solution of ascorbic acid, promotes different level of tooth growth, measured by a greater mean tooth length*, I computed three test statistics mesuring the mean difference in tooth length given the same dose level, but different delivery method. The test statistics labeled Tstat(x), where x=7,...9, represent the following comparison:
+To address the second hypothesis, *that the dataset supports a hypothesis that the delivery method, orange juice or an aqueous solution of ascorbic acid, promotes a different level of tooth growth, measured by a greater mean tooth length*, I computed three test statistics measuring the mean differences in tooth length given the same dose level, but different delivery method. The test statistics are labeled Tstat(x), where x=7,...9, represent the following comparison:
 
 * Tstat7: computes the mean length from orange juice at 0.5 mg - mean length from aqueous solution at 0.5 mg
 * Tstat8: computes the mean length from orange juice at 1.0 mg - mean length from aqueous solution at 1.0 mg
@@ -128,25 +130,25 @@ stat3<-round(rbind(int7,int8,int9),4)
 stat4<-rbind(pv7,pv8,pv9)
 stat5<-cbind(stat3,stat4)
 rownames(stat5)<-c("Tstat7","Tstat8","Tstat9")
-colnames(stat5)<-c("Lower Bound","Upper Bound","P-value")
+colnames(stat5)<-c("Lower Bound","Upper Bound","p_value")
 stat5
 ```
 
-The results show that we can reject the Null hypotheses (i.e., that the mean difference in tooth length is zero) for dose level 0.5 mg and 1.0 mg. This supports the alternative hypotheses that tooth growth is promoted when delivered by orange juice relative to aqueous solution in doses of 0.5 mg and 1.0 mg. However, we cannot reject the Null hypothesis at the dose level of 2.0 mg.
+The results show that we can reject the null hypotheses (i.e., that the mean difference in tooth length is zero) for dose levels 0.5 mg and 1.0 mg. This supports the alternative hypothesis that tooth growth is promoted when delivered by orange juice relative to aqueous solution in doses of 0.5 mg and 1.0 mg. However, we cannot reject the null hypothesis at the dose level of 2.0 mg.
 
 ###Conclusion
 
-I tested two hypotheses based on the data in the ToothGrowth dataset. The first hypothesis was that tooth growth was promoted by the administration of Vitamin C. I examined this hypothesis by testing the proposition of zero mean tooth growth against positive mean tooth growth. In all, cases the test statistic allowed for the rejection of the Null hypothesis of zero mean growth, and therefore leads to the conclusion that tooth growth is promoted by the administration of Vitamin C, regardless of the mode of delivery.
+I tested two hypotheses based on the data in the ToothGrowth dataset. The first hypothesis was that tooth growth was promoted by the administration of Vitamin C. I examined this hypothesis by testing the proposition of zero mean tooth growth against positive mean tooth growth. In all cases, the test statistic allowed for the rejection of the null hypothesis of zero mean growth, and therefore leads to the conclusion that tooth growth is promoted by the administration of Vitamin C, regardless of the mode of delivery.
 
-The second hypothesis postulated that Vitamin C delivered via orange juice promoted greater tooth growth than Vitamin C delivered via an aqueous solution. The test statistics for this hypothesis compared the mean growth of the two delivery methods at the same dose level. We found that at 0.5 mg, and 1.0 mg, we were able to reject the Null hypothesis that the mean difference in tooth growth was zero. Therefore, the alternative hypothesis would indicate that at 0.5 mg and 1.0 mg, Vitamin C delivered via orange juice promotes greater tooth growth than Vitamin C delivered via an aqueous solution. However, we could not reject the Null hypothesis at the 2.0 mg dose level. So it is not statistically possible to say that Vitamin C delivered via orange juice promotes greater tooth growth than Vitamin C delivered via an aqueous solution.
+The second hypothesis postulated that Vitamin C delivered via orange juice promoted greater tooth growth than Vitamin C delivered via an aqueous solution. The test statistics for this hypothesis compared the mean growth of the two delivery methods at the same dose level. I found that at 0.5 mg and 1.0 mg, I was able to reject the null hypothesis that the mean difference in tooth growth was zero. Therefore, the alternative hypothesis would indicate that at 0.5 mg and 1.0 mg, Vitamin C delivered via orange juice promotes greater tooth growth than Vitamin C delivered via an aqueous solution. However, I could not reject the null hypothesis at the 2.0 mg dose level. So it is not statistically possible to say that Vitamin C delivered via orange juice promotes greater tooth growth than Vitamin C delivered via an aqueous solution at 2.0 mg.
 
 ###Appendix
 
-I used simulation to bootstrap distributions to test the two hypotheses. For the first hypothesis, I created distributions to examine Tsat1 (compares the mean length from aqueous solution at 2.0 mg - mean length from aqueous solution at 0.5 mg) and Tstat4 (compares the mean length from orange juice at 2.0 mg - mean length from orange juice at 0.5 mg).
+I used simulation to bootstrap distributions to test the two hypotheses. For the first hypothesis, I created distributions to examine Tsat1 (computes the mean length from aqueous solution at 2.0 mg - mean length from aqueous solution at 0.5 mg) and Tstat4 (computes the mean length from orange juice at 2.0 mg - mean length from orange juice at 0.5 mg).
 
-I then used simulation to test the hpothesis that Vitamin C delievered via orange juice at 2.0 mg promoted greater tooth growth than Vitamin C delivered via aqueous solution at 2.0 mg.
+I then used simulation to test the hypothesis that Vitamin C delivered via orange juice at 2.0 mg promoted greater tooth growth than Vitamin C delivered via aqueous solution at 2.0 mg.
 
-In the simulations that follow the black vertical line is drawn at the observed test statistic. The fact that all of the outcomes in the histogram fall to the left of the line for the first two charts indicate that the p_value is below the selected 5% error rate, and supports rejection of the Null hypothesis (in both cases the P-Value was zero. In the third chart the vertical line is much closer to the center of the distribution and corresponds to a p-value of 0.5, which is above the 5% error rate. This supports the fact that the Null hypothesis cannot be rejected.
+In the simulations that follow the black vertical line is drawn at the observed test statistic. The fact that all of the outcomes in the histogram fall to the left of the line for the first two charts indicate that the p_value is below the selected 5% error rate, and supports rejection of the null hypothesis (in both cases the p_value was zero). In the third chart the vertical line is much closer to the center of the distribution and corresponds to a p-value of 0.5, which is above the 5% error rate. This supports the fact that the Null hypothesis cannot be rejected.
 
 **Note**. perm represents the permutations that resulted from the simulation.
 
@@ -158,12 +160,12 @@ OJy<-OJsubdata$len
 OJgroup<-as.character(OJsubdata$dose)
 testStat<-function(w,g) mean(w[g=="2"]) - mean(w[g=="0.5"])
 OJobsstat<-testStat(OJy,OJgroup)
-perm<-sapply(1:10000, function(i) testStat(OJy, sample(OJgroup)))
+perm<-sapply(1:10000, function(i) testStat(OJy, sample(OJgroup, replace = TRUE)))
 mean(perm>OJobsstat)
 g<-ggplot(data.frame(perm), aes(x=perm, color="perm"))
 g<-g+geom_histogram(bins = 100)
 g<-g+geom_vline(xintercept = OJobsstat, lwd =2)
-g<-g+ggtitle("Permutation of ToothGrowth Dataset: Orange Juice Dosage 2.0 vs. 0.5")
+g<-g+ggtitle("Permutation of ToothGrowth Dataset: Orange Juice Dosage 2.0 mg vs. 0.5 mg")
 g
 
 subdata<-ToothGrowth[ToothGrowth$dose%in% c("0.5","2"),]
@@ -172,12 +174,12 @@ VCy<-VCsubdata$len
 VCgroup<-as.character(VCsubdata$dose)
 testStat<-function(w,g) mean(w[g=="2"]) - mean(w[g=="0.5"])
 VCobsstat<-testStat(VCy,VCgroup)
-perm<-sapply(1:10000, function(i) testStat(VCy, sample(VCgroup)))
+perm<-sapply(1:10000, function(i) testStat(VCy, sample(VCgroup, replace = TRUE)))
 mean(perm>VCobsstat)
 g<-ggplot(data.frame(perm), aes(x=perm, color="perm"))
 g<-g+geom_histogram(bins = 100)
 g<-g+geom_vline(xintercept = VCobsstat, lwd =2)
-g<-g+ggtitle("Permutation of ToothGrowth Dataset: Viitamin C Dosage 2.0 vs. 0.5")
+g<-g+ggtitle("Permutation of ToothGrowth Dataset: Viitamin C Dosage 2.0 mg vs. 0.5 mg")
 g
 
 subdata<-ToothGrowth[ToothGrowth$dose%in% c("2"),]
@@ -185,12 +187,12 @@ y<-subdata$len
 group<-as.character(subdata$supp)
 testStat<-function(w,g) mean(w[g=="OJ"]) - mean(w[g=="VC"])
 obsstat<-testStat(y,group)
-perm<-sapply(1:10000, function(i) testStat(y, sample(group)))
+perm<-sapply(1:10000, function(i) testStat(y, sample(group,replace = TRUE)))
 mean(perm>obsstat)
 g<-ggplot(data.frame(perm), aes(x=perm, color="perm"))
 g<-g+geom_histogram(bins = 100)
 g<-g+geom_vline(xintercept = obsstat, lwd =2)
-g<-g+ggtitle("Permutation of ToothGrowth Dataset: Orange Juice vs. Vitamin C at a Dosage of 2.0")
+g<-g+ggtitle("Permutation of ToothGrowth Dataset: Orange Juice vs. Vitamin C at a Dosage of 2.0 mg")
 g
 
 ```
